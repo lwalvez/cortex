@@ -1,0 +1,77 @@
+
+  /* PROJECTS */
+  .project-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+  .project-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+  .project-card{
+    background:linear-gradient(180deg,var(--surface) 0%,var(--surface-2) 100%);
+    border:1px solid var(--border);border-radius:14px;padding:18px;
+    box-shadow:var(--shadow-sm);transition:all 0.18s;
+    position:relative;overflow:hidden;
+  }
+  .project-card:hover{border-color:var(--border-strong);box-shadow:var(--shadow-md), 0 0 22px rgba(176,97,255,0.1)}
+  .project-card::before{
+    content:'';position:absolute;top:0;left:0;bottom:0;width:4px;
+    background:var(--p-color, var(--neon));
+    box-shadow:0 0 12px var(--p-color, var(--neon));
+  }
+  .project-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .project-name{
+    margin:0;font-size:15px;font-weight:700;color:var(--text);flex:1;
+    letter-spacing:-0.01em;line-height:1.3;
+  }
+  .project-status{
+    padding:3px 10px;border-radius:99px;font-size:10px;font-weight:700;
+    text-transform:uppercase;letter-spacing:0.06em;border:1px solid;
+  }
+  .status-planejamento{background:rgba(255,184,107,0.14);color:var(--warn);border-color:rgba(255,184,107,0.32)}
+  .status-ativo       {background:rgba(57,212,255,0.14);color:var(--neon-4);border-color:rgba(57,212,255,0.32)}
+  .status-pausado     {background:rgba(126,106,168,0.16);color:#a89cc4;border-color:rgba(126,106,168,0.32)}
+  .status-concluido   {background:rgba(92,255,177,0.14);color:var(--good);border-color:rgba(92,255,177,0.32)}
+  .status-cancelado   {background:rgba(255,122,154,0.14);color:var(--bad);border-color:rgba(255,122,154,0.32)}
+  .project-desc{
+    font-size:12.5px;color:var(--text-dim);line-height:1.5;
+    margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+    overflow:hidden;
+  }
+  .project-progress{
+    display:flex;align-items:center;gap:10px;margin-bottom:10px;
+  }
+  .project-progress .progress-bar{flex:1;margin:0}
+  .project-pct{
+    font-size:12px;font-weight:800;color:var(--text);min-width:36px;text-align:right;
+    font-variant-numeric:tabular-nums;
+  }
+  .project-meta{
+    display:flex;flex-wrap:wrap;gap:10px;
+    font-size:11.5px;color:var(--text-dim);
+    padding-top:10px;border-top:1px solid var(--border);
+  }
+  .project-meta .overdue{color:var(--bad);font-weight:700}
+  .project-body{display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
+  .project-card.expanded .project-body{display:block}
+  .ptask{
+    display:flex;align-items:center;gap:10px;
+    padding:8px 10px;border-radius:8px;
+    background:rgba(7,3,15,0.4);margin-bottom:6px;
+    border:1px solid var(--border);
+    font-size:13px;
+    transition:all 0.15s;
+  }
+  .ptask:hover{border-color:var(--border-strong)}
+  .ptask.done .ptask-text{text-decoration:line-through;opacity:0.5}
+  .ptask-text{flex:1;color:var(--text)}
+  .ptask-add{
+    display:flex;gap:8px;margin-top:8px;
+  }
+  .ptask-add input{
+    flex:1;padding:8px 10px;background:rgba(7,3,15,0.4);
+    border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;
+  }
+  .ptask-add input:focus{outline:none;border-color:var(--neon)}
+  .project-toggle{
+    width:100%;margin-top:10px;padding:7px;border-radius:8px;
+    background:rgba(170,120,255,0.08);border:1px solid var(--border);
+    color:var(--neon);font-size:11.5px;font-weight:700;
+    letter-spacing:0.04em;transition:all 0.15s;
+  }
+  .project-toggle:hover{background:rgba(170,120,255,0.15);border-color:var(--neon)}

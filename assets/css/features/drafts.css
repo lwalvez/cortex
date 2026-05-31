@@ -1,0 +1,114 @@
+
+  /* RASCUNHOS / DRAFTS */
+  .drafts-layout{
+    display:grid;grid-template-columns:300px 1fr;gap:18px;
+    height:calc(100vh - 220px);min-height:480px;
+  }
+  .drafts-list-pane{
+    background:linear-gradient(180deg,var(--surface) 0%,var(--surface-2) 100%);
+    border:1px solid var(--border);border-radius:14px;padding:14px;
+    display:flex;flex-direction:column;gap:10px;overflow:hidden;
+    box-shadow:var(--shadow-sm);
+  }
+  .drafts-search{
+    padding:10px 14px;background:rgba(7,3,15,0.5);
+    border:1px solid var(--border);border-radius:9px;
+    color:var(--text);font-size:13px;flex-shrink:0;
+    transition:all 0.15s;
+  }
+  .drafts-search:focus{outline:none;border-color:var(--neon);box-shadow:0 0 0 3px var(--neon-glow-soft,rgba(176,97,255,0.18))}
+  .drafts-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding-right:4px}
+  .draft-card{
+    position:relative;
+    padding:11px 12px;border-radius:10px;
+    background:rgba(7,3,15,0.4);border:1px solid var(--border);
+    cursor:pointer;transition:all 0.15s;
+  }
+  /* Copy button — minimal, hover-revealed nos cards */
+  .draft-card-copy{
+    position:absolute;top:8px;right:8px;
+    width:24px;height:24px;border-radius:6px;
+    background:rgba(7,3,15,0.7);border:1px solid var(--border);
+    display:grid;place-items:center;cursor:pointer;
+    color:var(--text-mute);font-size:11px;line-height:1;
+    opacity:0;transform:translateY(-2px);
+    transition:opacity 0.18s, transform 0.18s, color 0.15s, border-color 0.15s, background 0.15s;
+    z-index:2;
+  }
+  .draft-card:hover .draft-card-copy{opacity:1;transform:translateY(0)}
+  .draft-card-copy:hover{color:var(--neon);border-color:var(--neon);background:rgba(176,97,255,0.12)}
+
+  /* Animação de troca de ícone após copiar */
+  .draft-copy-btn{position:relative;overflow:hidden}
+  .draft-copy-btn .dc-ico-default,
+  .draft-copy-btn .dc-ico-done{
+    display:inline-grid;place-items:center;
+    transition:transform 0.28s cubic-bezier(0.16,1,0.3,1), opacity 0.18s;
+  }
+  .draft-copy-btn .dc-ico-done{
+    position:absolute;inset:0;color:var(--good);font-weight:900;
+    opacity:0;transform:scale(0.4) rotate(-20deg);
+  }
+  .draft-copy-btn.is-copied{color:var(--good)!important;border-color:rgba(92,255,177,0.45)!important;background:rgba(92,255,177,0.08)!important}
+  .draft-copy-btn.is-copied .dc-ico-default{opacity:0;transform:scale(0.4) rotate(20deg)}
+  .draft-copy-btn.is-copied .dc-ico-done{opacity:1;transform:scale(1) rotate(0)}
+  .draft-card:hover{border-color:var(--border-strong);background:rgba(7,3,15,0.55)}
+  .draft-card.active{
+    background:linear-gradient(135deg,rgba(176,97,255,0.18),rgba(122,43,255,0.08));
+    border-color:var(--neon);box-shadow:0 0 14px var(--neon-glow-soft,rgba(176,97,255,0.28));
+  }
+  .draft-card-head{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+  .draft-card-title{
+    font-size:13px;font-weight:700;color:var(--text);
+    flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .draft-pin{color:var(--neon);font-size:11px;flex-shrink:0}
+  .draft-card-preview{
+    font-size:11.5px;color:var(--text-dim);line-height:1.4;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+    overflow:hidden;margin-bottom:5px;
+  }
+  .draft-card-meta{
+    font-size:10.5px;color:var(--text-mute);
+    display:flex;justify-content:space-between;gap:6px;
+  }
+  .drafts-editor-pane{
+    background:linear-gradient(180deg,var(--surface) 0%,var(--surface-2) 100%);
+    border:1px solid var(--border);border-radius:14px;
+    display:flex;flex-direction:column;overflow:hidden;
+    box-shadow:var(--shadow-sm);
+  }
+  .drafts-editor-empty{
+    flex:1;display:grid;place-items:center;color:var(--text-mute);
+    font-size:13px;padding:40px;text-align:center;
+  }
+  .drafts-editor-empty .ico{font-size:54px;opacity:0.25;margin-bottom:14px}
+  .drafts-editor-active{display:flex;flex-direction:column;height:100%}
+  .editor-toolbar{
+    padding:12px 18px;border-bottom:1px solid var(--border);
+    display:flex;align-items:center;gap:10px;background:rgba(7,3,15,0.3);
+  }
+  .editor-title{
+    flex:1;padding:9px 13px;background:rgba(7,3,15,0.5);
+    border:1px solid var(--border);border-radius:9px;
+    color:var(--text);font-size:14.5px;font-weight:700;letter-spacing:-0.01em;
+    transition:all 0.15s;
+  }
+  .editor-title:focus{outline:none;border-color:var(--neon);box-shadow:0 0 0 3px var(--neon-glow-soft,rgba(176,97,255,0.18))}
+  .editor-content{
+    flex:1;padding:22px 26px;background:transparent;border:none;
+    color:var(--text);font-size:14.5px;line-height:1.75;
+    resize:none;font-family:inherit;letter-spacing:0.01em;
+  }
+  .editor-content:focus{outline:none}
+  .editor-content::placeholder{color:var(--text-mute);font-style:italic}
+  .editor-foot{
+    padding:9px 20px;border-top:1px solid var(--border);
+    background:rgba(7,3,15,0.45);font-size:11px;color:var(--text-mute);
+    display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
+  }
+  .editor-saved{font-size:11px;color:var(--good);opacity:0;transition:opacity 0.3s;font-weight:700;letter-spacing:0.04em}
+  .editor-saved.show{opacity:1}
+  .editor-stats{display:flex;gap:14px;align-items:center}
+  .editor-stats span{font-variant-numeric:tabular-nums}
+  .draft-empty-list{text-align:center;color:var(--text-mute);font-size:12px;padding:40px 16px}

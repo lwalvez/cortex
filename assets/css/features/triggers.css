@@ -1,0 +1,125 @@
+
+  /* TRIGGERS */
+  .triggers-grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;
+  }
+  .trigger-card{
+    display:flex;align-items:center;gap:12px;
+    padding:14px 16px 14px 18px;border-radius:12px;
+    background:linear-gradient(135deg,var(--surface) 0%,var(--surface-2) 100%);
+    border:1px solid var(--border);
+    cursor:pointer;transition:all 0.18s;
+    position:relative;overflow:hidden;
+    box-shadow:var(--shadow-sm);
+  }
+  .trigger-card::before{
+    content:'';position:absolute;top:0;left:0;bottom:0;width:4px;
+    background:var(--t-color,var(--neon));
+    box-shadow:0 0 14px var(--t-color,var(--neon));
+  }
+  .trigger-card:hover{
+    border-color:var(--t-color,var(--neon));
+    box-shadow:0 0 22px color-mix(in srgb, var(--t-color,var(--neon)) 35%, transparent), var(--shadow-md);
+    transform:translateY(-2px);
+  }
+  .trigger-icon{
+    font-size:22px;width:42px;height:42px;
+    display:grid;place-items:center;
+    background:rgba(7,3,15,0.45);border-radius:10px;
+    border:1px solid var(--border);
+    flex-shrink:0;
+    transition:all 0.18s;
+  }
+  .trigger-card:hover .trigger-icon{
+    background:color-mix(in srgb, var(--t-color,var(--neon)) 22%, transparent);
+    border-color:var(--t-color,var(--neon));
+  }
+  .trigger-info{flex:1;min-width:0}
+  .trigger-name{
+    font-size:14px;font-weight:700;color:var(--text);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    margin-bottom:2px;letter-spacing:-0.01em;
+  }
+  .trigger-url{
+    font-size:11px;color:var(--text-mute);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    font-family:'Consolas','Menlo',monospace;
+  }
+  .trigger-actions{
+    display:none;gap:2px;
+    position:absolute;top:6px;right:6px;
+    background:rgba(7,3,15,0.7);border-radius:7px;padding:2px;
+    backdrop-filter:blur(4px);
+  }
+  .trigger-card:hover .trigger-actions{display:flex}
+  .trigger-actions .btn-icon{padding:4px 6px;font-size:11px}
+  .trigger-empty{
+    text-align:center;padding:48px 32px;color:var(--text-mute);font-size:13px;
+    background:var(--surface);border:1px dashed var(--border);border-radius:14px;
+    grid-column:1/-1;
+  }
+
+  /* =========================================================
+     CORTEX PAGE · viewport-locked, esfera fullscreen
+     ========================================================= */
+  .cortex-page.active{
+    display:flex !important;flex-direction:column;
+    height:calc(100vh - 64px);  /* main padding 32+32 */
+    max-height:calc(100vh - 64px);
+    overflow:hidden;
+    position:relative;
+    padding:0;margin:0;gap:10px;
+  }
+  /* esfera ocupa o espaço livre acima do chat (flex:1 em vez de absolute) */
+  .cortex-canvas-wrap{
+    position:relative;
+    flex:1 1 0;min-height:0;min-width:0;
+    width:100%;
+    display:grid;place-items:center;
+    z-index:1;pointer-events:none;
+    overflow:visible;  /* permite esfera escalada sair sem cortar */
+    container-type:size;
+  }
+  /* Base: lado da esfera = menor dimensão disponível (sempre quadrado, sempre cabe) */
+  #cortexCanvas{
+    display:block;
+    width:min(100cqw, 100cqh);
+    height:min(100cqw, 100cqh);
+    max-width:100%;max-height:100%;
+    aspect-ratio:1/1;
+    background:transparent;
+    transform:scale(var(--sphere-scale,1));
+    transform-origin:center center;
+    transition:transform 0.25s ease;
+    filter:drop-shadow(0 0 50px color-mix(in srgb,var(--neon) 30%,transparent));
+  }
+  /* Fallback para navegadores sem container queries */
+  @supports not (container-type: size){
+    #cortexCanvas{
+      width:min(72vh, 72vw);
+      height:min(72vh, 72vw);
+    }
+  }
+  .cortex-greeting-sub{display:none !important}
+  /* Saudação aparece logo abaixo da esfera */
+  .cortex-page > .cortex-greeting{
+    margin:-8px 0 0;text-align:center;flex:0 0 auto;
+    font-size:22px;font-weight:600;letter-spacing:-0.015em;
+    background:linear-gradient(90deg,#fff 0%,var(--neon-3) 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:0 0 22px color-mix(in srgb,var(--neon) 25%,transparent);
+    z-index:2;position:relative;line-height:1.2;
+    animation:cortex-greet-in 0.6s ease-out;
+  }
+  @keyframes cortex-greet-in{
+    from{opacity:0;transform:translateY(8px)}
+    to{opacity:1;transform:none}
+  }
+  @media(max-width:560px){
+    .cortex-page > .cortex-greeting{font-size:17px}
+  }
+
+  .cortex-page > .cortex-actions,
+  .cortex-page > .cortex-chat,
+  .cortex-page > .cortex-input,
+  .cortex-page > .cortex-quick{position:relative;z-index:2}

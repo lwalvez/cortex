@@ -1,0 +1,229 @@
+/* =========================================================
+   BILLS · contas a pagar (dashboard view 2)
+   ========================================================= */
+
+/* Month navigation */
+.bills-month-nav{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:16px;padding:10px 14px;
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;
+}
+.bills-month-label{
+  font-size:16px;font-weight:700;color:var(--text);
+  text-transform:capitalize;letter-spacing:-0.01em;
+  min-width:180px;padding:0 8px;
+}
+
+/* Progress bar */
+.bills-progress-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:14px;
+  padding:16px 18px;margin-bottom:18px;
+}
+.bills-progress-head{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin-bottom:10px;flex-wrap:wrap;
+}
+.bills-progress-title{font-size:14px;font-weight:700;color:var(--text)}
+.bills-progress-sub{font-size:11px;color:var(--text-mute);margin-top:2px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700}
+.bills-progress-stat{font-size:13px;color:var(--text-dim);font-weight:600}
+.bills-progress-bar{
+  height:8px;border-radius:99px;background:rgba(7,3,15,0.5);
+  border:1px solid var(--border);overflow:hidden;
+}
+.bills-progress-fill{
+  height:100%;background:linear-gradient(90deg,#5cffb1,#39d4ff,#b061ff);
+  box-shadow:0 0 12px rgba(92,255,177,0.45);
+  border-radius:99px;transition:width 0.4s ease;
+}
+
+/* Filter pills */
+.bills-filter-pills{display:flex;gap:6px;flex-wrap:wrap}
+.bills-filter-pill{
+  padding:5px 11px;border-radius:99px;font-size:11.5px;font-weight:600;
+  background:rgba(7,3,15,0.4);border:1px solid var(--border);
+  color:var(--text-dim);transition:all 0.15s;
+  display:inline-flex;align-items:center;gap:5px;
+}
+.bills-filter-pill:hover{color:var(--text);border-color:var(--border-strong)}
+.bills-filter-pill.active{
+  background:linear-gradient(135deg,var(--neon-2),var(--neon));
+  color:#fff;border-color:transparent;box-shadow:var(--neon-glow-soft);
+}
+.bills-filter-pill .cnt{
+  background:rgba(255,255,255,0.1);padding:1px 6px;border-radius:99px;
+  font-size:10px;font-weight:700;
+}
+
+/* Bill card (month list) */
+.bills-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.bill-card{
+  display:grid;grid-template-columns:auto auto 1fr auto auto;
+  align-items:center;gap:12px;
+  padding:12px 14px;border-radius:11px;
+  background:var(--bg-1);border:1px solid var(--border);
+  transition:all 0.15s;
+}
+.bill-card:hover{transform:translateX(2px);border-color:var(--border-strong)}
+.bill-card.is-paid{opacity:0.55;background:rgba(92,255,177,0.04);border-color:rgba(92,255,177,0.2)}
+.bill-card.is-overdue{background:rgba(255,122,154,0.06);border-color:rgba(255,122,154,0.35)}
+
+.bill-check{position:relative;cursor:pointer;width:22px;height:22px;flex-shrink:0}
+.bill-check input{opacity:0;width:0;height:0;position:absolute}
+.bill-check span{
+  position:absolute;inset:0;border-radius:7px;
+  border:2px solid var(--border-strong);background:rgba(7,3,15,0.6);
+  transition:all 0.15s;display:grid;place-items:center;
+}
+.bill-check span::after{
+  content:'✓';color:#fff;font-size:14px;font-weight:900;opacity:0;transition:opacity 0.15s;
+}
+.bill-check input:checked + span{
+  background:linear-gradient(135deg,#5cffb1,#39d4ff);
+  border-color:transparent;box-shadow:0 0 10px rgba(92,255,177,0.5);
+}
+.bill-check input:checked + span::after{opacity:1;color:#001a08}
+
+.bill-icon{
+  width:36px;height:36px;border-radius:9px;
+  display:grid;place-items:center;font-size:17px;
+}
+.bill-info{flex:1;cursor:pointer;min-width:0}
+.bill-title{font-size:13.5px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bill-card.is-paid .bill-title{text-decoration:line-through;color:var(--text-mute)}
+.bill-sub{font-size:11px;color:var(--text-mute);margin-top:2px}
+
+.bill-badge{
+  padding:3px 9px;border-radius:99px;font-size:10.5px;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.06em;white-space:nowrap;
+}
+.bill-badge.paid{background:rgba(92,255,177,0.18);color:#5cffb1;border:1px solid rgba(92,255,177,0.4)}
+.bill-badge.overdue{background:rgba(255,122,154,0.2);color:#ff7a9a;border:1px solid rgba(255,122,154,0.5);animation:pulse-bad 2s infinite}
+.bill-badge.today{background:rgba(255,184,107,0.2);color:#ffb86b;border:1px solid rgba(255,184,107,0.5)}
+.bill-badge.soon{background:rgba(255,184,107,0.12);color:#ffb86b;border:1px solid rgba(255,184,107,0.3)}
+.bill-badge.ok{background:rgba(170,120,255,0.12);color:var(--text-dim);border:1px solid var(--border)}
+@keyframes pulse-bad{0%,100%{box-shadow:0 0 0 0 rgba(255,122,154,0.45)}50%{box-shadow:0 0 0 5px rgba(255,122,154,0)}}
+
+.bill-amount{font-size:14.5px;font-weight:800;color:var(--text);letter-spacing:-0.01em}
+.bill-card.is-paid .bill-amount{color:var(--text-mute)}
+
+/* Bills rows in "All bills" section */
+.bills-all{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.bills-row{
+  display:flex;align-items:center;gap:12px;padding:11px 13px;
+  background:var(--surface);border:1px solid var(--border);border-radius:11px;
+  cursor:pointer;transition:all 0.15s;
+}
+.bills-row:hover{transform:translateY(-2px);border-color:var(--neon);box-shadow:0 4px 14px rgba(0,0,0,0.3)}
+.bills-row-icon{width:34px;height:34px;border-radius:8px;display:grid;place-items:center;font-size:16px;flex-shrink:0}
+.bills-row-info{flex:1;min-width:0}
+.bills-row-title{font-size:13px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bills-row-sub{font-size:11px;color:var(--text-mute);margin-top:2px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.bills-row-amount{font-size:13px;font-weight:800;color:var(--neon)}
+.bills-tag{
+  display:inline-block;padding:1px 7px;border-radius:99px;font-size:9.5px;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.06em;
+}
+.bills-tag.rec{background:rgba(57,212,255,0.15);color:#39d4ff;border:1px solid rgba(57,212,255,0.3)}
+.bills-tag.once{background:rgba(126,106,168,0.15);color:var(--text-mute);border:1px solid var(--border)}
+
+/* ===== PRINTS (info section) ===== */
+.prints-filter-pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.prints-pill{
+  padding:6px 12px;border-radius:99px;font-size:11.5px;font-weight:600;
+  background:rgba(7,3,15,0.4);border:1px solid var(--border);color:var(--text-dim);
+  display:inline-flex;align-items:center;gap:6px;transition:all 0.15s;
+}
+.prints-pill:hover{color:var(--text);border-color:var(--cat-color,var(--neon))}
+.prints-pill.active{background:linear-gradient(135deg,var(--neon-2),var(--neon));color:#fff;border-color:transparent;box-shadow:var(--neon-glow-soft)}
+.prints-pill .cnt{background:rgba(255,255,255,0.1);padding:1px 6px;border-radius:99px;font-size:10px;font-weight:700}
+
+.prints-dropzone{
+  border-radius:14px;padding:6px;transition:all 0.15s;
+  border:2px dashed transparent;
+}
+.prints-dropzone.drag-active{
+  border-color:var(--neon);background:rgba(176,97,255,0.06);
+  box-shadow:inset 0 0 20px rgba(176,97,255,0.1);
+}
+.prints-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+  gap:14px;
+}
+.prints-empty{
+  grid-column:1/-1;text-align:center;padding:40px 18px;
+  background:rgba(7,3,15,0.3);border:1px dashed var(--border);border-radius:12px;
+  color:var(--text-mute);
+}
+.print-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  overflow:hidden;display:flex;flex-direction:column;
+  transition:all 0.18s;
+}
+.print-card:hover{transform:translateY(-3px);border-color:var(--neon);box-shadow:0 8px 24px rgba(176,97,255,0.18)}
+.print-thumb{
+  aspect-ratio:4/3;background-size:cover;background-position:center;background-color:var(--bg-1);
+  cursor:zoom-in;position:relative;
+}
+.print-cat-badge{
+  position:absolute;top:8px;left:8px;
+  padding:3px 8px;border-radius:99px;font-size:10px;font-weight:700;color:#fff;
+  text-shadow:0 1px 2px rgba(0,0,0,0.4);
+  backdrop-filter:blur(6px);
+}
+.print-meta{padding:10px;display:flex;flex-direction:column;gap:6px}
+.print-title{
+  width:100%;background:transparent;border:none;outline:none;
+  font-size:12.5px;font-weight:700;color:var(--text);padding:2px 0;
+}
+.print-cat-select{
+  width:100%;padding:5px 8px;border-radius:7px;
+  background:var(--bg-1);border:1px solid var(--border);
+  color:var(--text-dim);font-size:11px;outline:none;cursor:pointer;
+}
+.print-actions{display:flex;gap:4px;justify-content:flex-end}
+
+/* PRINT LIGHTBOX */
+.print-lightbox{
+  position:fixed;inset:0;background:rgba(0,0,0,0.88);
+  z-index:9999;display:none;align-items:center;justify-content:center;
+  padding:30px;backdrop-filter:blur(8px);
+}
+.print-lightbox.show{display:flex}
+.pl-box{
+  max-width:90vw;max-height:90vh;display:flex;flex-direction:column;gap:12px;
+  background:var(--surface);border:1px solid var(--border);border-radius:14px;
+  padding:14px;box-shadow:var(--shadow-lg);
+}
+.pl-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+.pl-title{font-size:15px;font-weight:700;color:var(--text)}
+.pl-meta{font-size:11px;color:var(--text-mute);margin-top:3px}
+.pl-box img{
+  max-width:100%;max-height:75vh;object-fit:contain;
+  border-radius:10px;background:#000;
+}
+
+/* ===== MINI CLOCK (sidebar · acima do pomodoro) ===== */
+.mini-clock.sidebar-clock{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding:10px 12px;margin:0 0 12px;border-radius:12px;
+  background:linear-gradient(180deg,rgba(28,13,61,0.6) 0%,rgba(7,3,15,0.5) 100%);
+  border:1px solid var(--border);
+  font-family:'JetBrains Mono','Fira Code','Consolas',ui-monospace,monospace;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.04),0 2px 8px rgba(0,0,0,0.3);
+  user-select:none;
+  transition:border-color 0.2s,box-shadow 0.2s;
+}
+.mini-clock.sidebar-clock:hover{
+  border-color:color-mix(in srgb,var(--neon) 45%,var(--border));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.06),0 0 14px color-mix(in srgb,var(--neon) 22%,transparent);
+}
+.mc-time{
+  font-size:20px;font-weight:700;
+  letter-spacing:0.06em;line-height:1;
+  background:linear-gradient(90deg,#fff,var(--neon-3));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.mc-date{
+  font-size:10px;color:var(--text-mute);
+  letter-spacing:0.1em;text-transform:uppercase;font-weight:700;
+}

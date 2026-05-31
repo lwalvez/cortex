@@ -1,0 +1,45 @@
+
+  /* HABITS */
+  .habits-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
+  .habit-card{
+    background:linear-gradient(180deg,var(--surface) 0%,var(--surface-2) 100%);
+    border:1px solid var(--border);
+    border-radius:14px;padding:22px;
+    box-shadow:var(--shadow);
+    text-align:center;position:relative;
+    transition:all 0.2s;
+  }
+  .habit-card:hover{transform:translateY(-3px);border-color:var(--border-strong);box-shadow:var(--shadow-md),0 0 24px rgba(176,97,255,0.12)}
+  .habit-emoji{font-size:46px;margin-bottom:6px;filter:drop-shadow(0 0 18px rgba(176,97,255,0.35))}
+  .habit-name{font-size:17px;font-weight:700;margin:0 0 14px;color:var(--text)}
+  .habit-timer{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
+    margin-bottom:14px;
+  }
+  .timer-unit{
+    background:rgba(7,3,15,0.4);border:1px solid var(--border);border-radius:10px;padding:10px 4px;
+  }
+  .timer-num{font-size:22px;font-weight:800;letter-spacing:-0.02em;font-variant-numeric:tabular-nums;color:var(--neon);text-shadow:0 0 14px rgba(176,97,255,0.4)}
+  .timer-lbl{font-size:9.5px;color:var(--text-mute);text-transform:uppercase;letter-spacing:0.1em;font-weight:600}
+  .habit-badge{
+    display:inline-block;padding:5px 14px;border-radius:99px;
+    font-size:11px;font-weight:700;margin-bottom:14px;
+    text-transform:uppercase;letter-spacing:0.08em;border:1px solid;
+  }
+  .badge-red{background:rgba(255,122,154,0.14);color:var(--bad);border-color:rgba(255,122,154,0.32);box-shadow:0 0 12px rgba(255,122,154,0.18)}
+  .badge-yellow{background:rgba(255,184,107,0.14);color:var(--warn);border-color:rgba(255,184,107,0.32);box-shadow:0 0 12px rgba(255,184,107,0.18)}
+  .badge-blue{background:rgba(57,212,255,0.14);color:var(--neon-4);border-color:rgba(57,212,255,0.32);box-shadow:0 0 12px rgba(57,212,255,0.18)}
+  .badge-green{background:rgba(92,255,177,0.14);color:var(--good);border-color:rgba(92,255,177,0.32);box-shadow:0 0 12px rgba(92,255,177,0.18)}
+  .habit-relapse{
+    width:100%;padding:10px;border-radius:10px;
+    background:rgba(255,122,154,0.1);color:var(--bad);
+    border:1px solid rgba(255,122,154,0.3);
+    font-weight:600;font-size:13px;letter-spacing:0.02em;
+    transition:all 0.15s;
+  }
+  .habit-relapse:hover{background:rgba(255,122,154,0.2);box-shadow:0 0 16px rgba(255,122,154,0.25)}
+  .habit-actions-top{position:absolute;top:10px;right:10px;display:flex;gap:2px}
+  .emoji-picker{display:flex;flex-wrap:wrap;gap:6px;padding:8px;background:rgba(7,3,15,0.4);border:1px solid var(--border);border-radius:10px;max-height:140px;overflow-y:auto}
+  .emoji-opt{font-size:22px;padding:4px 6px;border-radius:6px;cursor:pointer;transition:all 0.12s}
+  .emoji-opt:hover{background:var(--surface-2)}
+  .emoji-opt.selected{background:rgba(176,97,255,0.22);box-shadow:0 0 12px rgba(176,97,255,0.35)}

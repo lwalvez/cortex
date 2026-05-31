@@ -1,0 +1,42 @@
+/* =========================================================
+   CORTEX · main.css
+   Ordem de cascata (base → components → features → responsive)
+   ========================================================= */
+
+/* --- Base (variáveis CSS, reset, layout) --- */
+@import url('./base/variables.css');
+@import url('./base/layout.css');
+
+/* --- Componentes primitivos (botões, formulários, cards, modais, toast) --- */
+@import url('./components/buttons.css');
+@import url('./components/cards.css');
+@import url('./components/modals.css');
+@import url('./components/toast.css');
+@import url('./components/palette.css');
+
+/* --- Features (cada seção/página em arquivo próprio) --- */
+@import url('./features/sidebar.css');
+@import url('./features/cortex.css');
+@import url('./features/dashboard.css');
+@import url('./features/calendar.css');
+@import url('./features/kanban.css');
+@import url('./features/projects.css');
+@import url('./features/triggers.css');
+@import url('./features/notes.css');
+@import url('./features/vault.css');
+@import url('./features/bills.css');
+@import url('./features/dyncards.css');
+@import url('./features/drafts.css');
+@import url('./features/workouts.css');
+@import url('./features/habits.css');
+@import url('./features/bad-habits.css');
+@import url('./features/info.css');
+@import url('./features/trackers.css');
+@import url('./features/settings.css');
+@import url('./features/pomodoro.css');
+
+/* --- Responsive (sempre por último para sobrescrever) --- */
+@import url('./base/responsive.css');
+
+/* --- Print stylesheet (impressão A4 limpa) --- */
+@import url('./base/print.css');

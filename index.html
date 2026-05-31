@@ -1,0 +1,1388 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<title>CORTEX — Premium Dashboard</title>
+
+<!-- Chart.js (dependência externa) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<!-- html2canvas para print de cards -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+<!-- Estilos modulares -->
+<link rel="stylesheet" href="./assets/css/main.css?v=1779842068" />
+</head>
+<body>
+
+<div class="file-toast" id="fileToast"><span class="dot"></span><span id="fileToastMsg"></span></div>
+
+<!-- Hamburguer mobile (visível só <600px) -->
+<button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMobileSidebar()" aria-label="Menu">☰</button>
+
+
+<!-- PRINT LIGHTBOX -->
+<div class="print-lightbox" id="printLightbox" onclick="if(event.target===this)closePrintLightbox()">
+  <div class="pl-box">
+    <div class="pl-head">
+      <div>
+        <div class="pl-title" id="printLightboxTitle">—</div>
+        <div class="pl-meta" id="printLightboxMeta">—</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn-icon" id="printLightboxDownload" title="Baixar">⬇</button>
+        <button class="btn-icon" onclick="closePrintLightbox()" title="Fechar">✕</button>
+      </div>
+    </div>
+    <img id="printLightboxImg" alt="Print" />
+  </div>
+</div>
+
+<aside class="sidebar" id="sidebar">
+  <button class="sidebar-collapse-btn" id="sidebarCollapseBtn" onclick="toggleSidebarCollapsed()" title="Recolher / expandir barra lateral" aria-label="Recolher barra lateral">
+    <span class="scb-icon">‹</span>
+  </button>
+  <div class="brand">
+    <label class="logo" id="brandLogo" title="Clique para trocar a foto de perfil">
+      <span class="logo-letter" id="brandLogoLetter">C</span>
+      <span class="logo-edit-overlay">📷</span>
+      <input type="file" accept="image/*" style="display:none" onchange="changeProfilePhoto(this)" />
+    </label>
+    <div class="brand-text">
+      <h1>CORTEX</h1>
+      <p>Premium Neon</p>
+    </div>
+    <button class="settings-gear" onclick="openSettings()" title="Configurações" aria-label="Configurações">⚙️</button>
+    <button class="logout-btn" onclick="logoutCortex()" title="Sair · desconecta arquivo e recarrega" aria-label="Sair">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+        <polyline points="16 17 21 12 16 7"/>
+        <line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>
+    </button>
+  </div>
+  <nav class="nav"><!-- preenchida dinamicamente por applySidebarStructure() --></nav>
+  <div class="mini-clock sidebar-clock" id="miniClock" style="display:none">
+    <div class="mc-time" id="mcTime">00:00</div>
+    <div class="mc-date" id="mcDate">—</div>
+  </div>
+  <div class="pomodoro-widget" id="pomodoroWidget">
+    <div class="pomo-head">
+      <span class="pomo-icon" id="pomoIcon">🍅</span>
+      <span class="pomo-mode" id="pomoMode">Pomodoro</span>
+      <span class="pomo-sess-badge"><span id="pomoSessions">0</span></span>
+    </div>
+    <div class="pomo-circle" onclick="togglePomodoro()" title="Clique para iniciar/pausar">
+      <svg viewBox="0 0 100 100">
+        <circle class="pomo-track" cx="50" cy="50" r="46"/>
+        <circle class="pomo-bar" id="pomoBar" cx="50" cy="50" r="46" stroke-dasharray="289" stroke-dashoffset="0"/>
+      </svg>
+      <div class="pomo-time" id="pomoTime">25:00</div>
+    </div>
+    <div class="pomo-controls">
+      <button id="pomoBtn" class="primary" onclick="togglePomodoro()" title="Iniciar/Pausar">▶</button>
+      <button onclick="resetPomodoro()" title="Reiniciar ciclo">⏹</button>
+      <button onclick="skipPomodoro()" title="Pular para próxima fase">⏭</button>
+    </div>
+    <div class="pomo-stats"><strong id="pomoTodayCount">0</strong> sessões hoje</div>
+  </div>
+  <div class="sidebar-footer">v1.0 · Cortex Suite</div>
+</aside>
+
+<main class="main">
+
+  <!-- CORTEX ASSISTANT -->
+  <section class="page active cortex-page" data-page="cortex">
+    <div class="cortex-canvas-wrap" id="cortexCanvasWrap">
+      <canvas id="cortexCanvas" width="2880" height="2880"></canvas>
+    </div>
+    <h2 class="cortex-greeting" id="cortexGreeting">Bom dia, Mestre.</h2>
+    <!-- referências ocultas (preservam IDs usados por funções existentes) -->
+    <button id="cortexSphereControl" class="hidden-state-anchor" type="button" tabindex="-1" aria-hidden="true">
+      <span id="sphereToggleIcon">🌌</span>
+    </button>
+    <button id="cortexMicBtn" class="hidden-state-anchor" type="button" tabindex="-1" aria-hidden="true">🎤</button>
+    <div class="cortex-chat" id="cortexChat"></div>
+    <div class="cortex-input cortex-input-premium" id="cortexInputBar">
+      <div class="cortex-actions-wrap">
+        <button class="ci-prefix ci-menu-trigger" id="cortexActionsTrigger"
+                type="button" onclick="toggleCortexActionsMenu(event)"
+                title="Opções rápidas" aria-label="Opções rápidas" aria-haspopup="menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 2l1.7 5.6L19 9l-5.3 1.4L12 16l-1.7-5.6L5 9l5.3-1.4L12 2z"/>
+            <path d="M19 16l.8 2.4L22 19l-2.2.6L19 22l-.8-2.4L16 19l2.2-.6L19 16z" opacity="0.6"/>
+          </svg>
+        </button>
+        <div class="cortex-actions-menu" id="cortexActionsMenu" role="menu" aria-hidden="true">
+          <button class="cam-item" data-action="sphere" onclick="cortexMenuToggleSphere()" role="menuitem">
+            <span class="cam-ico">🌌</span>
+            <span class="cam-lbl">Esfera</span>
+            <span class="cam-state" id="camStateSphere">on</span>
+          </button>
+          <button class="cam-item" data-action="mic" onclick="cortexMenuToggleMic()" role="menuitem">
+            <span class="cam-ico">🎤</span>
+            <span class="cam-lbl">Microfone</span>
+            <span class="cam-state" id="camStateMic">off</span>
+          </button>
+          <button class="cam-item" data-action="voice" onclick="cortexMenuToggleVoice()" role="menuitem">
+            <span class="cam-ico">🔊</span>
+            <span class="cam-lbl">Voz (Jarvis)</span>
+            <span class="cam-state" id="camStateVoice">off</span>
+          </button>
+          <button class="cam-item cam-danger" data-action="clear" onclick="cortexMenuClearChat()" role="menuitem">
+            <span class="cam-ico">🗑️</span>
+            <span class="cam-lbl">Apagar conversa</span>
+          </button>
+        </div>
+      </div>
+      <input type="text" id="cortexInput"
+             placeholder="Pergunte ao CORTEX"
+             autocomplete="off" spellcheck="false"
+             oninput="updateCortexSendState(this)"
+             onkeydown="if(event.key==='Enter') sendCortex()" />
+      <button class="ci-send" id="cortexSendBtn" onclick="cortexSendOrCancel()" title="Enviar (Enter)" aria-label="Enviar" disabled>
+        <svg class="ci-send-icon ci-icon-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M5 12h14"/><path d="M13 6l6 6-6 6"/>
+        </svg>
+        <svg class="ci-send-icon ci-icon-stop" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <rect x="6" y="6" width="12" height="12" rx="2"/>
+        </svg>
+      </button>
+    </div>
+    <div class="cortex-quick cortex-quick-row" id="cortexQuick">
+      <button class="quick-chip" onclick="askCortex('Resumo de hoje')">📅 Hoje</button>
+      <button class="quick-chip" onclick="askCortex('Resumo de amanhã')">⏭️ Amanhã</button>
+      <button class="quick-chip" onclick="askCortex('Esta semana')">🗓️ Semana</button>
+      <button class="quick-chip" onclick="askCortex('Tarefas pendentes')">✅ Tarefas</button>
+      <button class="quick-chip" onclick="askCortex('Como estão minhas metas?')">🎯 Metas</button>
+      <button class="quick-chip" onclick="askCortex('Hábitos hoje')">✨ Hábitos</button>
+      <button class="quick-chip" onclick="askCortex('Minhas finanças')">💰 Finanças</button>
+      <button class="quick-chip" onclick="askCortex('Projetos ativos')">🚀 Projetos</button>
+      <button class="quick-chip" onclick="askCortex('Hábitos ruins')">🚫 Vícios</button>
+      <button class="quick-chip" onclick="askCortex('Livros em leitura')">📚 Livros</button>
+      <button class="quick-chip" onclick="askCortex('Treinos recentes')">🏋️ Treinos</button>
+      <button class="quick-chip" onclick="askCortex('Resumo geral')">📊 Tudo</button>
+    </div>
+  </section>
+
+  <!-- INFO -->
+  <section class="page" data-page="info">
+    <div class="page-header">
+      <div>
+        <h2 class="page-title">Informações Pessoais 🪪</h2>
+        <p class="page-subtitle">Seus dados ficam salvos automaticamente <span class="save-indicator" id="saveIndicator">salvo</span></p>
+      </div>
+    </div>
+    <div class="info-grid">
+
+      <!-- IDENTIDADE -->
+      <div class="info-card full" data-card="identity">
+        <div class="info-card-head">
+          <div class="info-card-icon">👤</div>
+          <div>
+            <h3 class="info-card-title">Identidade</h3>
+            <p class="info-card-sub">Dados pessoais e perfil</p>
+          </div>
+          <button class="info-copy-btn" onclick="copyInfoCard(this)" title="Copiar dados do card">📋</button>
+          <button class="info-print-btn" onclick="screenshotInfoCard(this)" title="Salvar print do card">📷</button>
+        </div>
+        <div class="info-fields">
+          <div class="info-field full">
+            <label>Nome Completo</label>
+            <input type="text" class="info-input" data-info="name" placeholder="Seu nome completo" />
+          </div>
+          <div class="info-field">
+            <label>Data de Nascimento</label>
+            <input type="date" class="info-input" data-info="birthDate" />
+          </div>
+          <div class="info-field">
+            <label>Horário de Nascimento</label>
+            <input type="time" class="info-input" data-info="birthTime" />
+          </div>
+          <div class="info-field">
+            <label>Idade</label>
+            <div class="with-badge">
+              <input type="text" class="info-input" id="ageDisplay" readonly placeholder="—" />
+            </div>
+          </div>
+          <div class="info-field">
+            <label>MBTI</label>
+            <select class="info-select" data-info="mbti">
+              <option value="">Não definido</option>
+              <option>INTJ</option><option>INTP</option><option>ENTJ</option><option>ENTP</option>
+              <option>INFJ</option><option>INFP</option><option>ENFJ</option><option>ENFP</option>
+              <option>ISTJ</option><option>ISFJ</option><option>ESTJ</option><option>ESFJ</option>
+              <option>ISTP</option><option>ISFP</option><option>ESTP</option><option>ESFP</option>
+            </select>
+          </div>
+          <div class="info-field">
+            <label>Signo Solar</label>
+            <select class="info-select" data-info="sign">
+              <option value="">Não definido</option>
+              <option>Áries</option><option>Touro</option><option>Gêmeos</option><option>Câncer</option>
+              <option>Leão</option><option>Virgem</option><option>Libra</option><option>Escorpião</option>
+              <option>Sagitário</option><option>Capricórnio</option><option>Aquário</option><option>Peixes</option>
+            </select>
+          </div>
+          <div class="info-field">
+            <label>Ascendente</label>
+            <select class="info-select" data-info="ascendant">
+              <option value="">Não definido</option>
+              <option>Áries</option><option>Touro</option><option>Gêmeos</option><option>Câncer</option>
+              <option>Leão</option><option>Virgem</option><option>Libra</option><option>Escorpião</option>
+              <option>Sagitário</option><option>Capricórnio</option><option>Aquário</option><option>Peixes</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- DOCUMENTOS -->
+      <div class="info-card" data-card="documents">
+        <div class="info-card-head">
+          <div class="info-card-icon">📄</div>
+          <div>
+            <h3 class="info-card-title">Documentos</h3>
+            <p class="info-card-sub">Identificação oficial</p>
+          </div>
+          <button class="info-copy-btn" onclick="copyInfoCard(this)" title="Copiar dados do card">📋</button>
+          <button class="info-print-btn" onclick="screenshotInfoCard(this)" title="Salvar print do card">📷</button>
+        </div>
+        <div class="info-fields">
+          <div class="info-field">
+            <label>CPF</label>
+            <input type="text" class="info-input" data-info="cpf" placeholder="000.000.000-00" />
+          </div>
+          <div class="info-field">
+            <label>RG</label>
+            <input type="text" class="info-input" data-info="rg" placeholder="00.000.000-0" />
+          </div>
+          <div class="info-field">
+            <label>Passaporte</label>
+            <input type="text" class="info-input" data-info="passport" placeholder="AB000000" />
+          </div>
+          <div class="info-field">
+            <label>Título de Eleitor</label>
+            <input type="text" class="info-input" data-info="voterId" placeholder="0000 0000 0000" />
+          </div>
+        </div>
+      </div>
+
+      <!-- ENDEREÇO -->
+      <div class="info-card" data-card="address">
+        <div class="info-card-head">
+          <div class="info-card-icon">🏠</div>
+          <div>
+            <h3 class="info-card-title">Endereço</h3>
+            <p class="info-card-sub">Onde você mora</p>
+          </div>
+          <button class="info-copy-btn" onclick="copyInfoCard(this)" title="Copiar dados do card">📋</button>
+          <button class="info-print-btn" onclick="screenshotInfoCard(this)" title="Salvar print do card">📷</button>
+        </div>
+        <div class="info-fields">
+          <div class="info-field full">
+            <label>Endereço Completo</label>
+            <input type="text" class="info-input" data-info="address" placeholder="Rua, número, complemento" />
+          </div>
+          <div class="info-field">
+            <label>CEP</label>
+            <input type="text" class="info-input" data-info="cep" placeholder="00000-000" />
+          </div>
+          <div class="info-field">
+            <label>Cidade</label>
+            <input type="text" class="info-input" data-info="city" placeholder="Cidade" />
+          </div>
+          <div class="info-field full">
+            <label>Estado</label>
+            <input type="text" class="info-input" data-info="state" placeholder="UF ou nome do estado" />
+          </div>
+        </div>
+      </div>
+
+      <!-- SAÚDE -->
+      <div class="info-card full" data-card="health">
+        <div class="info-card-head">
+          <div class="info-card-icon">❤️</div>
+          <div>
+            <h3 class="info-card-title">Saúde</h3>
+            <p class="info-card-sub">Informações médicas críticas</p>
+          </div>
+          <button class="info-copy-btn" onclick="copyInfoCard(this)" title="Copiar dados do card">📋</button>
+          <button class="info-print-btn" onclick="screenshotInfoCard(this)" title="Salvar print do card">📷</button>
+        </div>
+        <div class="info-fields">
+          <div class="info-field">
+            <label>Tipo Sanguíneo</label>
+            <select class="info-select" data-info="bloodType">
+              <option value="">Não definido</option>
+              <option>A+</option><option>A−</option>
+              <option>B+</option><option>B−</option>
+              <option>AB+</option><option>AB−</option>
+              <option>O+</option><option>O−</option>
+            </select>
+          </div>
+          <div class="info-field">
+            <label>Plano de Saúde</label>
+            <input type="text" class="info-input" data-info="healthPlan" placeholder="Operadora · nº carteirinha" />
+          </div>
+          <div class="info-field full">
+            <label>Médico de Confiança</label>
+            <input type="text" class="info-input" data-info="trustedDoctor" placeholder="Nome · especialidade · telefone" />
+          </div>
+          <div class="info-field full">
+            <label>Alergias</label>
+            <textarea class="info-textarea" data-info="allergies" placeholder="Alimentos, medicamentos, ambiente..."></textarea>
+          </div>
+          <div class="info-field full">
+            <label>Medicamentos em Uso</label>
+            <textarea class="info-textarea" data-info="medications" placeholder="Nome, dosagem, frequência..."></textarea>
+          </div>
+          <div class="info-field full">
+            <label>Restrições Médicas</label>
+            <textarea class="info-textarea" data-info="medicalRestrictions" placeholder="Condições crônicas, cirurgias, restrições..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONTATOS DE EMERGÊNCIA -->
+      <div class="info-card full" data-card="contacts">
+        <div class="info-card-head">
+          <div class="info-card-icon">📞</div>
+          <div>
+            <h3 class="info-card-title">Contatos de Emergência</h3>
+            <p class="info-card-sub">Quem acionar em caso de necessidade</p>
+          </div>
+          <button class="info-copy-btn" onclick="copyInfoCard(this)" title="Copiar contatos">📋</button>
+          <button class="info-print-btn" onclick="screenshotInfoCard(this)" title="Salvar print do card">📷</button>
+        </div>
+        <div class="contact-list" id="contactList"></div>
+        <button type="button" class="add-contact" onclick="addContact()">+ Adicionar contato</button>
+      </div>
+
+      <!-- PRINTS ESTRATÉGICOS -->
+      <div class="info-card full" data-card="prints">
+        <div class="info-card-head">
+          <div class="info-card-icon">📸</div>
+          <div>
+            <h3 class="info-card-title">Prints Estratégicos</h3>
+            <p class="info-card-sub">Documentos, comprovantes, recibos · acesso rápido</p>
+          </div>
+          <button class="info-copy-btn" onclick="copyInfoCard(this)" title="Copiar lista de prints" style="margin-left:auto">📋</button>
+          <button class="info-print-btn" onclick="screenshotInfoCard(this)" title="Salvar print do card">📷</button>
+          <label class="btn btn-primary" style="cursor:pointer">
+            + Adicionar print
+            <input type="file" accept="image/*" multiple style="display:none" onchange="handlePrintUpload(this)" />
+          </label>
+        </div>
+        <div class="prints-filter-pills" id="printsFilterPills"></div>
+        <div class="prints-dropzone" id="printsDropzone">
+          <div class="prints-grid" id="printsGrid"></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- DASHBOARD -->
+  <section class="page" data-page="dashboard">
+    <div class="page-header">
+      <div>
+        <h2 class="page-title">Dashboard Financeiro</h2>
+        <p class="page-subtitle" id="dashSubtitle">Resumo do mês atual</p>
+      </div>
+      <button class="btn btn-primary" id="dashAddBtn" onclick="openTxModal()">+ Nova Transação</button>
+    </div>
+
+    <div class="notes-view-toggle" style="margin-bottom:18px">
+      <button class="active" data-dashview="resumo" onclick="setDashboardView('resumo')"><span>📊</span><span>Resumo</span></button>
+      <button data-dashview="bills" onclick="setDashboardView('bills')"><span>🧾</span><span>Contas a Pagar</span></button>
+      <button data-dashview="cards" onclick="setDashboardView('cards')"><span>🗃️</span><span>Cartões Dinâmicos</span></button>
+      <button class="dash-layout-toggle" id="dashLayoutToggle" onclick="toggleDashboardLayout()" title="Alternar layout Clássico/Bento" style="margin-left:auto">🎴</button>
+    </div>
+
+    <!-- VIEW: RESUMO -->
+    <div id="dashViewResumo">
+    <div class="summary-grid">
+      <div class="summary-card receita">
+        <div class="summary-label"><div class="summary-icon">↑</div>Receitas do Mês</div>
+        <div class="summary-value positive" id="sumReceita">R$ 0,00</div>
+        <div class="summary-meta" id="sumReceitaCount">0 transações</div>
+      </div>
+      <div class="summary-card despesa">
+        <div class="summary-label"><div class="summary-icon">↓</div>Despesas do Mês</div>
+        <div class="summary-value negative" id="sumDespesa">R$ 0,00</div>
+        <div class="summary-meta" id="sumDespesaCount">0 transações</div>
+      </div>
+      <div class="summary-card saldo">
+        <div class="summary-label"><div class="summary-icon">=</div>Saldo do Mês</div>
+        <div class="summary-value" id="sumSaldo">R$ 0,00</div>
+        <div class="summary-meta" id="sumSaldoMeta">Receitas − Despesas</div>
+      </div>
+    </div>
+
+    <div class="dash-grid">
+      <div class="card">
+        <h3 class="section-title">Receitas vs Despesas</h3>
+        <p class="section-sub">Comparativo dos últimos 6 meses</p>
+        <div class="chart-wrap"><canvas id="chartBars"></canvas></div>
+      </div>
+      <div class="card">
+        <h3 class="section-title">Gastos por Categoria</h3>
+        <p class="section-sub">Distribuição do mês atual</p>
+        <div class="cat-list" id="catList"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 class="section-title">Transações Recentes</h3>
+      <p class="section-sub">Últimos lançamentos</p>
+      <div class="recent-list" id="recentList"></div>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin:28px 0 14px;flex-wrap:wrap;gap:12px">
+      <div>
+        <h3 class="section-title" style="font-size:18px;letter-spacing:-0.01em">Todas as Transações</h3>
+        <p class="section-sub" style="margin-bottom:0">Histórico completo · adicione, edite ou exclua lançamentos</p>
+      </div>
+      <button class="btn btn-secondary" onclick="openTxModal()">+ Adicionar transação</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Descrição</th>
+            <th>Categoria</th>
+            <th>Data</th>
+            <th>Tipo</th>
+            <th style="text-align:right">Valor</th>
+            <th style="text-align:right">Ações</th>
+          </tr>
+        </thead>
+        <tbody id="txBody"></tbody>
+      </table>
+    </div>
+    </div><!-- /dashViewResumo -->
+
+    <!-- VIEW: CONTAS A PAGAR -->
+    <div id="dashViewBills" style="display:none">
+      <div class="bills-month-nav">
+        <button class="cal-nav-btn" onclick="billsNavMonth(-1)" title="Mês anterior">‹</button>
+        <div class="bills-month-label" id="billsMonthLabel">—</div>
+        <button class="cal-nav-btn" onclick="billsNavMonth(1)" title="Próximo mês">›</button>
+        <button class="cal-today-btn" onclick="billsToday()">Mês atual</button>
+      </div>
+
+      <div class="summary-grid">
+        <div class="summary-card" style="border-left:3px solid #b061ff">
+          <div class="summary-label"><div class="summary-icon">∑</div>Total do mês</div>
+          <div class="summary-value" id="billsTotalAll">R$ 0,00</div>
+          <div class="summary-meta" id="billsCountAll">0 contas</div>
+        </div>
+        <div class="summary-card" style="border-left:3px solid #5cffb1">
+          <div class="summary-label"><div class="summary-icon">✓</div>Já pago</div>
+          <div class="summary-value positive" id="billsTotalPaid">R$ 0,00</div>
+          <div class="summary-meta" id="billsCountPaid">0 quitadas</div>
+        </div>
+        <div class="summary-card" style="border-left:3px solid #ffb86b">
+          <div class="summary-label"><div class="summary-icon">⏳</div>A pagar</div>
+          <div class="summary-value" id="billsTotalPending" style="color:#ffb86b">R$ 0,00</div>
+          <div class="summary-meta" id="billsCountPending">0 pendentes</div>
+        </div>
+        <div class="summary-card" style="border-left:3px solid #ff7a9a">
+          <div class="summary-label"><div class="summary-icon">!</div>Vencidas</div>
+          <div class="summary-value negative" id="billsTotalOverdue">R$ 0,00</div>
+          <div class="summary-meta" id="billsCountOverdue">0 atrasadas</div>
+        </div>
+      </div>
+
+      <div class="bills-progress-card">
+        <div class="bills-progress-head">
+          <div>
+            <div class="bills-progress-title">Progresso do mês</div>
+            <div class="bills-progress-sub" id="billsProgressSub">0% pago</div>
+          </div>
+          <div class="bills-progress-stat" id="billsProgressStat">R$ 0,00 / R$ 0,00</div>
+        </div>
+        <div class="bills-progress-bar"><div class="bills-progress-fill" id="billsProgressFill"></div></div>
+      </div>
+
+      <div class="dash-grid">
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:10px;flex-wrap:wrap">
+            <div>
+              <h3 class="section-title" style="margin:0">Contas do mês</h3>
+              <p class="section-sub" style="margin:2px 0 0">Marque pagas · clique para editar</p>
+            </div>
+            <div class="bills-filter-pills" id="billsFilterPills"></div>
+          </div>
+          <div class="bills-list" id="billsList"></div>
+        </div>
+        <div class="card">
+          <h3 class="section-title">Por categoria</h3>
+          <p class="section-sub">Distribuição do mês</p>
+          <div class="cat-list" id="billsCatList"></div>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin:24px 0 12px;gap:12px;flex-wrap:wrap">
+        <div>
+          <h3 class="section-title" style="font-size:18px;letter-spacing:-0.01em">Todas as contas cadastradas</h3>
+          <p class="section-sub" style="margin-bottom:0">Recorrentes aparecem todo mês · únicas só no mês de cadastro</p>
+        </div>
+        <button class="btn btn-secondary" onclick="openBillModal()">+ Nova conta</button>
+      </div>
+      <div class="bills-all" id="billsAll"></div>
+    </div>
+
+    <!-- VIEW: CARTÕES DINÂMICOS -->
+    <div id="dashViewCards" style="display:none">
+      <div class="dc-toolbar">
+        <div class="dc-toolbar-search">
+          <span class="dc-search-icon">🔍</span>
+          <input type="search" class="dc-search-input" id="dcSearch" placeholder="Pesquisar título, descrição ou tag..." oninput="dcSetSearch(this.value)" />
+        </div>
+        <div class="dc-toolbar-group">
+          <select class="dc-select" id="dcFilterStatus" onchange="dcSetFilter('filterStatus',this.value)">
+            <option value="todos">Todos os status</option>
+            <option value="andamento">⚙ Em andamento</option>
+            <option value="pendente">⏳ Pendente</option>
+            <option value="concluido">✓ Concluído</option>
+            <option value="urgente">! Urgente</option>
+          </select>
+          <select class="dc-select" id="dcSort" onchange="dcSetFilter('sort',this.value)">
+            <option value="manual">↕ Ordem manual</option>
+            <option value="priority">⚡ Prioridade</option>
+            <option value="date">📅 Data</option>
+            <option value="created">🆕 Criação</option>
+            <option value="title">🔤 Título</option>
+          </select>
+          <button class="dc-toolbar-btn" onclick="dcToggleCollapseAll()" id="dcCollapseAllBtn" title="Recolher / expandir todos">⊟ Recolher todos</button>
+          <button class="btn btn-primary dc-add-btn" onclick="dcAddCard()">+ Adicionar Cartão</button>
+        </div>
+      </div>
+      <div class="dc-stats" id="dcStats"></div>
+      <div class="dc-grid" id="dcGrid"></div>
+    </div>
+  </section>
+
+  <!-- CALENDAR -->
+  <section class="page" data-page="calendar">
+    <div class="page-header">
+      <div>
+        <h2 class="page-title">Calendário 📅</h2>
+        <p class="page-subtitle">Visualize e organize seus eventos</p>
+      </div>
+      <button class="btn btn-primary" onclick="openEventModal()">+ Novo Evento</button>
+    </div>
+    <div class="cal-toolbar">
+      <div class="cal-nav">
+        <button class="cal-nav-btn" onclick="calNav(-1)" title="Anterior">‹</button>
+        <button class="cal-today-btn" onclick="calToday()">Hoje</button>
+        <button class="cal-nav-btn" onclick="calNav(1)" title="Próximo">›</button>
+        <div class="cal-period" id="calPeriod">—</div>
+      </div>
+      <div class="cal-views">
+        <button class="cal-view-btn active" data-view="month" onclick="setCalView('month')">Mês</button>
+        <button class="cal-view-btn" data-view="week" onclick="setCalView('week')">Semana</button>
+        <button class="cal-view-btn" data-view="day" onclick="setCalView('day')">Dia</button>
+      </div>
+    </div>
+    <div class="cal-filter-bar" id="calFilterBar"></div>
+    <div id="calBody"></div>
+  </section>
+
+  <!-- NOTES -->
+  <section class="page" data-page="notes">
+    <div class="page-header">
+      <div>
+        <h2 class="page-title">Notas</h2>
+        <p class="page-subtitle">Post-it rápido ou vault estratégico estilo Obsidian</p>
+      </div>
+      <button class="btn btn-primary" id="notesAddBtn" onclick="addNote('notes')">+ Nova Nota</button>
+    </div>
+    <div class="notes-view-toggle">
+      <button class="active" data-view="postit" onclick="setNotesView('postit')"><span>🗒️</span><span>Post-it</span></button>
+      <button data-view="vault" onclick="setNotesView('vault')"><span>🧠</span><span>Vault</span></button>
+      <button data-view="graph" onclick="setNotesView('graph')"><span>🕸️</span><span>Visualização</span></button>
+    </div>
+
+    <!-- View 1: Post-it -->
+    <div id="notesViewPostit">
+      <div class="notes-grid" id="notesGrid"></div>
+    </div>
+
+    <!-- View 2: Vault (Obsidian-style) -->
+    <div id="notesViewVault" style="display:none">
+      <div class="vault-layout">
+        <aside class="vault-tree-pane">
+          <input type="search" class="vault-search" placeholder="🔍 Buscar no vault..." oninput="vaultSetSearch(this.value)" />
+          <div class="vault-section-label"><span>Pastas (PARA)</span></div>
+          <div class="vault-folder-list" id="vaultFolderList"></div>
+          <div class="vault-section-label"><span>Tags</span></div>
+          <div class="vault-tags-wrap"><div class="vault-tag-list" id="vaultTagList" style="flex-direction:row;flex-wrap:wrap"></div></div>
+        </aside>
+        <section class="vault-list-pane">
+          <div class="vault-list-head">
+            <div>
+              <div class="vault-list-title">Notas</div>
+              <div class="vault-list-sub" id="vaultListSub">Todas as notas</div>
+            </div>
+            <button class="vault-new-btn" onclick="vaultNewNote()">+ Nova</button>
+          </div>
+          <div class="vault-list" id="vaultList"></div>
+        </section>
+        <section class="vault-editor-pane" id="vaultEditor"></section>
+      </div>
+    </div>
+
+    <!-- View 3: Graph (Visualização) -->
+    <div id="notesViewGraph" style="display:none">
+      <div class="graph-container">
+        <div class="graph-toolbar">
+          <div class="graph-toolbar-left">
+            <button class="graph-btn" onclick="graphZoom(1.25)" title="Zoom in">＋</button>
+            <button class="graph-btn" onclick="graphZoom(0.8)" title="Zoom out">−</button>
+            <button class="graph-btn" onclick="graphReset()" title="Centralizar / reset">⊙</button>
+            <button class="graph-btn" id="graphPauseBtn" onclick="graphTogglePause()" title="Pausar simulação">⏸</button>
+            <span class="graph-stat" id="graphStat">— nós · — conexões</span>
+          </div>
+          <div class="graph-toolbar-right">
+            <label class="graph-toggle">
+              <input type="checkbox" id="graphShowTags" onchange="graphSetOption('showTags',this.checked)" />
+              <span>Tags</span>
+            </label>
+            <label class="graph-toggle">
+              <input type="checkbox" id="graphShowLabels" checked onchange="graphSetOption('showLabels',this.checked)" />
+              <span>Rótulos</span>
+            </label>
+            <label class="graph-toggle">
+              <input type="checkbox" id="graphShowOrphans" checked onchange="graphSetOption('showOrphans',this.checked)" />
+              <span>Órfãs</span>
+            </label>
+          </div>
+        </div>
+        <div class="graph-canvas-wrap">
+          <canvas id="graphCanvas"></canvas>
+          <div class="graph-legend" id="graphLegend"></div>
+          <div class="graph-tooltip" id="graphTooltip" style="display:none"></div>
+          <div class="graph-empty" id="graphEmpty" style="display:none">
+            <div style="font-size:46px;opacity:0.4">🕸️</div>
+            <div style="margin-top:10px;font-weight:700;color:var(--text-dim)">Sem notas no vault</div>
+            <div style="font-size:12px;color:var(--text-mute);margin-top:6px">Crie notas na aba <strong>Vault</strong> e conecte com <code>[[Nome]]</code> para ver o grafo.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MENTALIDADE (Mindset + Mantras unificado com toggle) -->
+  <section class="page" data-page="mentalidade">
+    <div class="page-header">
+      <div>
+        <h2 class="page-title" id="mentTitle">Mentalidade 🧘</h2>
+        <p class="page-subtitle" id="mentSub">Mindset · princípios, crenças e lembretes mentais</p>
+      </div>
+      <button class="btn btn-primary" onclick="addNote(currentMentKind)" id="mentAddBtn">+ Novo Mindset</button>
+    </div>
+    <div class="tracker-pills">
+      <button class="tracker-pill ment-toggle active" data-kind="mindset" onclick="setMentKind('mindset')"><span>🧠</span><span>Mindset</span></button>
+      <button class="tracker-pill ment-toggle" data-kind="mantras" onclick="setMentKind('mantras')"><span>🕉️</span><span>Mantras</span></button>
+    </div>
+    <div class="notes-grid" id="mindsetGrid"></div>
+    <div class="notes-grid" id="mantrasGrid" style="display:none"></div>
+  </section>
+
+  <!-- RASCUNHOS (notepad pessoal proativo) -->
+  <section class="page" data-page="drafts">
+    <div class="page-header">
+      <div>
+        <h2 class="page-title">Rascunhos ✏️</h2>
+        <p class="page-subtitle">Capture pensamentos rápidos · auto-save · zero atrito</p>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-secondary" onclick="exportDrafts()" title="Baixar todos como .txt">📥 Exportar</button>
+        <button class="btn btn-primary" onclick="newDraft()" title="Novo rascunho (Ctrl+Alt+N)">+ Novo rascunho</button>
+      </div>
+    </div>
+    <div class="drafts-layout">
+      <aside class="drafts-list-pane">
+        <input type="search" class="drafts-search" placeholder="🔍 Buscar nos rascunhos..." oninput="setDraftsSearch(this.value)" />
+        <div class="drafts-list" id="draftsList"></div>
+      </aside>
+      <main class="drafts-editor-pane" id="draftsEditor"></main>
+    </div>
+  </section>
+
+  <!-- TRACKERS -->
+  <section class="page" data-page="trackers">
+    <div class="page-header">
+      <div>
+        <h2 class="page-title">Trackers 📊</h2>
+        <p class="page-subtitle" id="trackerSubtitle">Acompanhe e tire insights de tudo na sua vida</p>
+      </div>
+    </div>
+    <div class="tracker-pills" id="trackerPills"></div>
+    <div id="trackerContent"></div>
+  </section>
+
+  <!-- PROJECTS -->
+  <section class="page" data-page="projects">
+    <div class="page-header">
+      <div>
+        <h2 class="page-title">Projetos 🚀</h2>
+        <p class="page-subtitle">Organize iniciativas com prazos, tarefas e progresso</p>
+      </div>
+      <button class="btn btn-primary" onclick="openProjectModal()">+ Novo Projeto</button>
+    </div>
+    <div class="stat-row" id="projectStats"></div>
+    <div class="project-filters" id="projectFilters"></div>
+    <div class="project-grid" id="projectGrid"></div>
+  </section>
+
+  <!-- HÁBITOS (sistema completo) -->
+  <section class="page" data-page="habits">
+    <div class="page-header">
+      <div>
+        <h2 class="page-title">Hábitos ✨</h2>
+        <p class="page-subtitle">Construa rotinas que mudam sua vida · heatmap, streaks e categorias</p>
+      </div>
+      <button class="btn btn-primary" onclick="openHabitItemModal()">+ Novo Hábito</button>
+    </div>
+    <div class="notes-view-toggle" style="margin-bottom:18px">
+      <button class="active" data-hbpview="lista" onclick="setHabitsView('lista')"><span>📋</span><span>Lista</span></button>
+      <button data-hbpview="dashboard" onclick="setHabitsView('dashboard')"><span>📊</span><span>Dashboard</span></button>
+    </div>
+
+    <!-- VIEW: LISTA -->
+    <div id="hbpViewLista">
+      <div class="stat-row" id="hbpStats"></div>
+      <h3 class="section-title" style="margin-bottom:6px">⚡ Para Hoje</h3>
+      <p class="section-sub">Clique no card para marcar como feito</p>
+      <div class="habit-today-row" id="hbpTodayRow"></div>
+      <h3 class="section-title" style="margin-top:8px">📊 Todos os Hábitos</h3>
+      <p class="section-sub">Histórico dos últimos 30 dias · streak atual e maior streak</p>
+      <div class="habits-list-grid" id="hbpListGrid"></div>
+    </div>
+
+    <!-- VIEW: DASHBOARD -->
+    <div id="hbpViewDashboard" style="display:none">
+      <div id="hbpDashboardContent"></div>
+    </div>
+  </section>
+
+  <!-- TAREFAS (extraído de Trackers) + LISTA DE COMPRAS -->
+  <section class="page" data-page="tasks">
+    <div class="page-header">
+      <div>
+        <h2 class="page-title">Tarefas ✅</h2>
+        <p class="page-subtitle">Gerencie tudo que precisa ser feito · prioridades, prazos e progresso</p>
+      </div>
+    </div>
+    <div id="tasksPageContent"></div>
+
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin:36px 0 14px;flex-wrap:wrap;gap:12px;border-top:1px solid var(--border);padding-top:30px">
+      <div>
+        <h3 class="section-title" style="font-size:18px;letter-spacing:-0.01em">🛒 Lista de Compras</h3>
+        <p class="section-sub" style="margin-bottom:0">Adicione itens · valor opcional · total calculado automaticamente</p>
+      </div>
+    </div>
+    <div id="shoppingListContent"></div>
+  </section>
+
+  <!-- TRIGGERS (atalhos clicáveis para sites) -->
+  <section class="page" data-page="triggers">
+    <div class="page-header">
+      <div>
+        <h2 class="page-title">Triggers ⚡</h2>
+        <p class="page-subtitle">Atalhos clicáveis · adicione o link de um site e crie um botão para acessá-lo rapidamente</p>
+      </div>
+      <button class="btn btn-primary" onclick="openTriggerModal()">+ Novo Trigger</button>
+    </div>
+    <div class="triggers-grid" id="triggersGrid"></div>
+  </section>
+
+  <!-- KANBAN (Pessoal + Profissional unificado com toggle) -->
+  <section class="page" data-page="kanban">
+    <div class="page-header">
+      <div>
+        <h2 class="page-title" id="kanbanPageTitle">Kanban Pessoal 🗂️</h2>
+        <p class="page-subtitle" id="kanbanPageSub">Organize tarefas da sua vida pessoal</p>
+      </div>
+    </div>
+    <div class="tracker-pills">
+      <button class="tracker-pill kanban-toggle active" data-kind="pessoal" onclick="setKanbanKind('pessoal')"><span>🗂️</span><span>Pessoal</span></button>
+      <button class="tracker-pill kanban-toggle" data-kind="profissional" onclick="setKanbanKind('profissional')"><span>💼</span><span>Profissional</span></button>
+    </div>
+    <div class="kanban-board" id="kanbanPessoalBoard" data-board="pessoal"></div>
+    <div class="kanban-board" id="kanbanProfissionalBoard" data-board="profissional" style="display:none"></div>
+  </section>
+
+</main>
+
+<!-- TRANSACTION MODAL -->
+<div class="modal-backdrop" id="txModal">
+  <div class="modal">
+    <h3 class="modal-title" id="txModalTitle">Nova Transação</h3>
+    <p class="modal-sub">Preencha os detalhes do lançamento</p>
+    <form class="form-grid" id="txForm" onsubmit="saveTx(event)">
+      <input type="hidden" id="txId" />
+      <div class="form-field">
+        <label class="form-label">Descrição</label>
+        <input type="text" class="form-input" id="txDesc" required placeholder="Ex: Mercado, Salário..." />
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Valor (R$)</label>
+          <input type="number" step="0.01" min="0" class="form-input" id="txValue" required placeholder="0,00" />
+        </div>
+        <div class="form-field">
+          <label class="form-label">Data</label>
+          <input type="date" class="form-input" id="txDate" required />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Tipo</label>
+          <select class="form-select" id="txType" required onchange="updateCategoryOptions()">
+            <option value="receita">Receita</option>
+            <option value="despesa" selected>Despesa</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Categoria</label>
+          <select class="form-select" id="txCategory" required></select>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('txModal')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- WORKOUT MODAL -->
+<div class="modal-backdrop" id="workoutModal">
+  <div class="modal" style="max-width:560px">
+    <h3 class="modal-title" id="workoutModalTitle">Novo Treino</h3>
+    <p class="modal-sub">Registre sua sessão e exercícios</p>
+    <form class="form-grid" id="workoutForm" onsubmit="saveWorkout(event)">
+      <input type="hidden" id="wkId" />
+      <div class="form-field">
+        <label class="form-label">Nome do Treino</label>
+        <input type="text" class="form-input" id="wkName" required placeholder="Ex: Peito e Tríceps" />
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Data</label>
+          <input type="date" class="form-input" id="wkDate" required />
+        </div>
+        <div class="form-field">
+          <label class="form-label">Tipo</label>
+          <select class="form-select" id="wkType" required>
+            <option value="musculacao">Musculação</option>
+            <option value="cardio">Cardio</option>
+            <option value="hiit">HIIT</option>
+            <option value="yoga">Yoga</option>
+            <option value="funcional">Funcional</option>
+            <option value="calistenia">Calistenia</option>
+            <option value="esporte">Esporte</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Duração (minutos)</label>
+          <input type="number" min="1" class="form-input" id="wkDuration" required placeholder="60" />
+        </div>
+        <div class="form-field">
+          <label class="form-label">Como se sentiu</label>
+          <select class="form-select" id="wkMood" required>
+            <option value="otimo">Ótimo</option>
+            <option value="bom">Bom</option>
+            <option value="ok">Ok</option>
+            <option value="cansado">Cansado</option>
+            <option value="ruim">Ruim</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Exercícios</label>
+        <div class="exercise-list" id="exerciseList">
+          <div class="exercise-row head">
+            <span>Nome</span><span>Séries</span><span>Reps</span><span>Peso(kg)</span>
+          </div>
+        </div>
+        <button type="button" class="add-exercise" onclick="addExerciseRow()">+ Adicionar exercício</button>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('workoutModal')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- DIET MODAL -->
+<div class="modal-backdrop" id="dietModal">
+  <div class="modal" style="max-width:560px">
+    <h3 class="modal-title" id="dietModalTitle">Nova Refeição</h3>
+    <p class="modal-sub">Registre sua refeição e alimentos</p>
+    <form class="form-grid" id="dietForm" onsubmit="saveDiet(event)">
+      <input type="hidden" id="dtId" />
+      <div class="form-field">
+        <label class="form-label">Nome da Refeição</label>
+        <input type="text" class="form-input" id="dtName" required placeholder="Ex: Almoço pós-treino" />
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Data</label>
+          <input type="date" class="form-input" id="dtDate" required />
+        </div>
+        <div class="form-field">
+          <label class="form-label">Tipo</label>
+          <select class="form-select" id="dtMeal" required>
+            <option value="cafe">Café da Manhã</option>
+            <option value="almoco">Almoço</option>
+            <option value="jantar">Jantar</option>
+            <option value="lanche">Lanche</option>
+            <option value="ceia">Ceia</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Água (copos)</label>
+          <input type="number" min="0" class="form-input" id="dtWater" placeholder="2" />
+        </div>
+        <div class="form-field">
+          <label class="form-label">Como se sentiu</label>
+          <select class="form-select" id="dtMood" required>
+            <option value="otimo">Ótimo</option>
+            <option value="bom">Bom</option>
+            <option value="ok">Ok</option>
+            <option value="cansado">Pesado</option>
+            <option value="ruim">Ruim</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Alimentos</label>
+        <div class="exercise-list" id="foodList">
+          <div class="exercise-row head food-row-head">
+            <span>Nome</span><span>Qtd</span><span>kcal</span>
+          </div>
+        </div>
+        <button type="button" class="add-exercise" onclick="addFoodRow()">+ Adicionar alimento</button>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('dietModal')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- KANBAN CARD MODAL -->
+<div class="modal-backdrop" id="cardModal">
+  <div class="modal">
+    <h3 class="modal-title" id="cardModalTitle">Novo Cartão</h3>
+    <p class="modal-sub">Adicione detalhes da tarefa</p>
+    <form class="form-grid" id="cardForm" onsubmit="saveCard(event)">
+      <input type="hidden" id="cardBoard" />
+      <input type="hidden" id="cardColId" />
+      <input type="hidden" id="cardId" />
+      <div class="form-field">
+        <label class="form-label">Título</label>
+        <input type="text" class="form-input" id="cardTitle" required placeholder="O que precisa ser feito?" />
+      </div>
+      <div class="form-field">
+        <label class="form-label">Descrição</label>
+        <textarea class="form-textarea" id="cardDesc" placeholder="Detalhes opcionais..."></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Prioridade</label>
+          <select class="form-select" id="cardPrio">
+            <option value="baixa">Baixa</option>
+            <option value="media" selected>Média</option>
+            <option value="alta">Alta</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Prazo (opcional)</label>
+          <input type="date" class="form-input" id="cardDue" />
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('cardModal')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- EVENT MODAL -->
+<div class="modal-backdrop" id="eventModal">
+  <div class="modal" style="max-width:520px">
+    <h3 class="modal-title" id="eventModalTitle">Novo Evento</h3>
+    <p class="modal-sub">Preencha os detalhes do evento</p>
+    <form class="form-grid" id="eventForm" onsubmit="saveEvent(event)">
+      <input type="hidden" id="evId" />
+      <div class="form-field">
+        <label class="form-label">Título</label>
+        <input type="text" class="form-input" id="evTitle" required placeholder="Reunião, consulta, treino..." />
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Data</label>
+          <input type="date" class="form-input" id="evDate" required />
+        </div>
+        <div class="form-field" style="justify-content:flex-end">
+          <label class="checkbox-label">
+            <input type="checkbox" id="evAllDay" onchange="toggleAllDayUI()" />
+            <span>Dia inteiro</span>
+          </label>
+        </div>
+      </div>
+      <div class="form-row" id="timeRow">
+        <div class="form-field">
+          <label class="form-label">Início</label>
+          <input type="time" class="form-input" id="evStart" />
+        </div>
+        <div class="form-field">
+          <label class="form-label">Fim</label>
+          <input type="time" class="form-input" id="evEnd" />
+        </div>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Categoria <span style="color:var(--text-mute);font-weight:400;font-size:11px">(opcional)</span></label>
+        <select class="form-input" id="evCategory">
+          <option value="">— Sem categoria —</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Cor</label>
+        <div class="color-picker-row" id="evColorRow"></div>
+        <input type="hidden" id="evColor" value="#b061ff" />
+      </div>
+      <div class="form-field">
+        <label class="form-label">Descrição</label>
+        <textarea class="form-textarea" id="evDesc" placeholder="Notas adicionais (opcional)..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn" id="evDeleteBtn" onclick="deleteEvent()" style="display:none;background:rgba(255,122,154,0.15);color:#ff7a9a;border:1px solid rgba(255,122,154,0.35);margin-right:auto">Excluir</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('eventModal')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- PROJECT MODAL -->
+<div class="modal-backdrop" id="projectModal">
+  <div class="modal" style="max-width:540px">
+    <h3 class="modal-title" id="projectModalTitle">Novo Projeto</h3>
+    <p class="modal-sub">Defina os parâmetros do projeto</p>
+    <form class="form-grid" id="projectForm" onsubmit="saveProject(event)">
+      <input type="hidden" id="prId" />
+      <div class="form-field">
+        <label class="form-label">Nome</label>
+        <input type="text" class="form-input" id="prName" required placeholder="Ex: Site CORTEX, Aprender Python..." />
+      </div>
+      <div class="form-field">
+        <label class="form-label">Descrição</label>
+        <textarea class="form-textarea" id="prDesc" placeholder="O que é esse projeto? Por que importa?"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Data de Início</label>
+          <input type="date" class="form-input" id="prStart" />
+        </div>
+        <div class="form-field">
+          <label class="form-label">Prazo</label>
+          <input type="date" class="form-input" id="prDeadline" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Status</label>
+          <select class="form-select" id="prStatus">
+            <option value="planejamento">📋 Planejamento</option>
+            <option value="ativo" selected>🚀 Ativo</option>
+            <option value="pausado">⏸ Pausado</option>
+            <option value="concluido">✓ Concluído</option>
+            <option value="cancelado">✕ Cancelado</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Prioridade</label>
+          <select class="form-select" id="prPriority">
+            <option value="baixa">Baixa</option>
+            <option value="media" selected>Média</option>
+            <option value="alta">Alta</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Cor</label>
+        <div class="color-picker-row" id="prColorRow"></div>
+        <input type="hidden" id="prColor" value="#b061ff" />
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn" id="prDeleteBtn" style="display:none;background:rgba(255,122,154,0.15);color:#ff7a9a;border:1px solid rgba(255,122,154,0.35);margin-right:auto" onclick="deleteProject()">Excluir</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('projectModal')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- HABIT ITEM MODAL (sistema completo de hábitos) -->
+<div class="modal-backdrop" id="habitItemModal">
+  <div class="modal" style="max-width:560px">
+    <h3 class="modal-title" id="hbpModalTitle">Novo Hábito</h3>
+    <p class="modal-sub">Defina o hábito que você quer construir</p>
+    <form class="form-grid" id="habitItemForm" onsubmit="saveHabitItem(event)">
+      <input type="hidden" id="hbpId" />
+      <div class="form-row">
+        <div class="form-field" style="flex:2">
+          <label class="form-label">Nome do hábito</label>
+          <input type="text" class="form-input" id="hbpName" required placeholder="Ex: Beber 2L de água, Meditar, Treinar..." />
+        </div>
+        <div class="form-field" style="max-width:100px">
+          <label class="form-label">Emoji</label>
+          <input type="text" class="form-input" id="hbpEmoji" placeholder="✨" maxlength="4" style="text-align:center;font-size:18px" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Categoria</label>
+          <input type="text" class="form-input" id="hbpCategory" placeholder="Ex: Saúde, Foco..." list="hbpCatList" />
+          <datalist id="hbpCatList">
+            <option>Saúde</option>
+            <option>Foco</option>
+            <option>Aprendizado</option>
+            <option>Espiritualidade</option>
+            <option>Relacionamentos</option>
+            <option>Trabalho</option>
+            <option>Criatividade</option>
+            <option>Físico</option>
+          </datalist>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Horário ideal</label>
+          <select class="form-select" id="hbpTime">
+            <option value="qualquer">Qualquer hora</option>
+            <option value="manhã">Manhã</option>
+            <option value="tarde">Tarde</option>
+            <option value="noite">Noite</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Frequência</label>
+          <select class="form-select" id="hbpType" onchange="document.getElementById('hbpFreqField').style.display=this.value==='weekly'?'':'none'">
+            <option value="daily">Diário (todo dia)</option>
+            <option value="weekly">Semanal (X vezes/semana)</option>
+          </select>
+        </div>
+        <div class="form-field" id="hbpFreqField" style="display:none">
+          <label class="form-label">Vezes por semana</label>
+          <input type="number" class="form-input" id="hbpFrequency" min="1" max="7" value="3" />
+        </div>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Cor</label>
+        <div class="color-picker-row" id="hbpColorRow"></div>
+        <input type="hidden" id="hbpColor" value="#b061ff" />
+      </div>
+      <div class="form-field">
+        <label class="form-label">Motivação / Notas (opcional)</label>
+        <textarea class="form-textarea" id="hbpNotes" placeholder="Por que esse hábito é importante para você? O que você ganha praticando?"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn" id="hbpDeleteBtn" style="display:none;background:rgba(255,122,154,0.15);color:#ff7a9a;border:1px solid rgba(255,122,154,0.35);margin-right:auto" onclick="deleteHabitItem()">Excluir</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('habitItemModal')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- TRIGGER MODAL -->
+<div class="modal-backdrop" id="triggerModal">
+  <div class="modal">
+    <h3 class="modal-title" id="triggerModalTitle">Novo Trigger</h3>
+    <p class="modal-sub">Crie um atalho clicável para um site</p>
+    <form class="form-grid" id="triggerForm" onsubmit="saveTrigger(event)">
+      <input type="hidden" id="trgId" />
+      <div class="form-row">
+        <div class="form-field" style="flex:2">
+          <label class="form-label">Nome</label>
+          <input type="text" class="form-input" id="trgName" required placeholder="Ex: GitHub, Notion, ChatGPT..." />
+        </div>
+        <div class="form-field" style="max-width:120px">
+          <label class="form-label">Ícone</label>
+          <input type="text" class="form-input" id="trgIcon" placeholder="⚡" maxlength="4" style="text-align:center;font-size:18px" />
+        </div>
+      </div>
+      <div class="form-field">
+        <label class="form-label">URL do site</label>
+        <input type="url" class="form-input" id="trgUrl" required placeholder="https://exemplo.com" />
+      </div>
+      <div class="form-field">
+        <label class="form-label">Cor</label>
+        <div class="color-picker-row" id="trgColorRow"></div>
+        <input type="hidden" id="trgColor" value="#b061ff" />
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn" id="trgDeleteBtn" style="display:none;background:rgba(255,122,154,0.15);color:#ff7a9a;border:1px solid rgba(255,122,154,0.35);margin-right:auto" onclick="deleteTrigger()">Excluir</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('triggerModal')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-backdrop" id="settingsModal">
+  <div class="modal" style="max-width:680px">
+    <h3 class="modal-title">⚙️ Configurações</h3>
+    <p class="modal-sub">Personalize sua experiência no CORTEX</p>
+    <div class="settings-body" id="settingsBody"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('settingsModal')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- HABIT MODAL -->
+<div class="modal-backdrop" id="habitModal">
+  <div class="modal">
+    <h3 class="modal-title" id="habitModalTitle">Novo Hábito</h3>
+    <p class="modal-sub">Comece a rastrear hoje</p>
+    <form class="form-grid" id="habitForm" onsubmit="saveHabit(event)">
+      <input type="hidden" id="hbId" />
+      <div class="form-field">
+        <label class="form-label">Nome do hábito</label>
+        <input type="text" class="form-input" id="hbName" required placeholder="Ex: Fumar, Beber, Redes sociais..." />
+      </div>
+      <div class="form-field">
+        <label class="form-label">Escolha um ícone</label>
+        <div class="emoji-picker" id="emojiPicker"></div>
+        <input type="hidden" id="hbEmoji" value="🚫" />
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('habitModal')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- BILL MODAL -->
+<div class="modal-backdrop" id="billModal">
+  <div class="modal" style="max-width:520px">
+    <h3 class="modal-title" id="billModalTitle">Nova Conta</h3>
+    <p class="modal-sub">Conta mensal recorrente ou pontual</p>
+    <form class="form-grid" id="billForm" onsubmit="saveBill(event)">
+      <input type="hidden" id="billId" />
+      <div class="form-field">
+        <label class="form-label">Descrição</label>
+        <input type="text" class="form-input" id="billTitle" required placeholder="Aluguel, Netflix, Internet..." />
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Valor</label>
+          <input type="number" step="0.01" min="0" class="form-input" id="billAmount" required placeholder="0,00" />
+        </div>
+        <div class="form-field">
+          <label class="form-label">Vencimento (dia do mês)</label>
+          <input type="number" min="1" max="31" class="form-input" id="billDueDay" required placeholder="10" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label">Categoria</label>
+          <select class="form-input" id="billCategory">
+            <option value="moradia">🏠 Moradia</option>
+            <option value="contas">💡 Contas (luz, água, gás)</option>
+            <option value="internet">📡 Internet/Telefone</option>
+            <option value="assinaturas">📺 Assinaturas</option>
+            <option value="cartao">💳 Cartão</option>
+            <option value="transporte">🚗 Transporte</option>
+            <option value="saude">💚 Saúde</option>
+            <option value="educacao">📚 Educação</option>
+            <option value="alimentacao">🍔 Alimentação</option>
+            <option value="outros">📎 Outros</option>
+          </select>
+        </div>
+        <div class="form-field" style="justify-content:flex-end">
+          <label class="checkbox-label">
+            <input type="checkbox" id="billRecurring" checked />
+            <span>Recorrente (todo mês)</span>
+          </label>
+        </div>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Observações</label>
+        <textarea class="form-textarea" id="billNotes" placeholder="Detalhes, link de pagamento, código de barras..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn" id="billDeleteBtn" onclick="deleteBill()" style="display:none;background:rgba(255,122,154,0.15);color:#ff7a9a;border:1px solid rgba(255,122,154,0.35);margin-right:auto">Excluir</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal('billModal')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- =========================================================
+     SCRIPTS · carregados em ordem de dependência
+     ========================================================= -->
+
+<!-- Core (estado, utils, persistência) -->
+<script src="./assets/js/core/crypto.js?v=1779842068"></script>
+<script src="./assets/js/core/state.js?v=1779842068"></script>
+<script src="./assets/js/core/utils.js?v=1779842068"></script>
+<script src="./assets/js/core/file-sync.js?v=1779842068"></script>
+<script src="./assets/js/core/i18n.js?v=1779842068"></script>
+
+<!-- UI primitives (router/modais/atalhos) -->
+<script src="./assets/js/ui/router.js?v=1779842068"></script>
+<script src="./assets/js/ui/shortcuts.js?v=1779842068"></script>
+<script src="./assets/js/ui/palette.js?v=1779842068"></script>
+
+<!-- Features (cada feature em um arquivo) -->
+<script src="./assets/js/features/dashboard.js?v=1779842068"></script>
+<script src="./assets/js/features/bills.js?v=1779842068"></script>
+<script src="./assets/js/features/dyncards.js?v=1779842068"></script>
+<script src="./assets/js/features/clock.js?v=1779842068"></script>
+<script src="./assets/js/features/calendar.js?v=1779842068"></script>
+<script src="./assets/js/features/kanban.js?v=1779842068"></script>
+<script src="./assets/js/features/projects.js?v=1779842068"></script>
+<script src="./assets/js/features/triggers.js?v=1779842068"></script>
+<script src="./assets/js/features/notes.js?v=1779842068"></script>
+<script src="./assets/js/features/vault.js?v=1779842068"></script>
+<script src="./assets/js/features/graph.js?v=1779842068"></script>
+<script src="./assets/js/features/workouts.js?v=1779842068"></script>
+<script src="./assets/js/features/habits.js?v=1779842068"></script>
+<script src="./assets/js/features/bad-habits.js?v=1779842068"></script>
+<script src="./assets/js/features/info.js?v=1779842068"></script>
+<script src="./assets/js/features/trackers.js?v=1779842068"></script>
+<script src="./assets/js/features/settings.js?v=1779842068"></script>
+<script src="./assets/js/features/pomodoro.js?v=1779842068"></script>
+<script src="./assets/js/features/cortex-tools.js?v=1779842068"></script>
+<script src="./assets/js/features/cortex-ai.js?v=1779842068"></script>
+<script src="./assets/js/features/cortex.js?v=1779842068"></script>
+
+<!-- Boot (DEVE ser o último) -->
+<script src="./assets/js/main.js?v=1779842068"></script>
+
+</body>
+</html>

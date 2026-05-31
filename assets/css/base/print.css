@@ -1,0 +1,173 @@
+/* =========================================================
+   PRINT · @media print · imprime/PDF limpo (A4)
+   ========================================================= */
+@media print {
+  /* Reset cores escuras pra economizar tinta + alto contraste */
+  :root, [data-theme="dark"], [data-theme="light"]{
+    --bg-0:#ffffff !important;
+    --bg-1:#ffffff !important;
+    --bg-2:#ffffff !important;
+    --surface:#ffffff !important;
+    --surface-2:#fafafa !important;
+    --surface-3:#f5f5f5 !important;
+    --sidebar:#ffffff !important;
+    --border:#cccccc !important;
+    --border-strong:#888888 !important;
+    --text:#111111 !important;
+    --text-dim:#333333 !important;
+    --text-mute:#666666 !important;
+    --neon:#000000 !important;
+    --neon-2:#000000 !important;
+    --neon-3:#444444 !important;
+    --neon-glow:none !important;
+    --neon-glow-soft:none !important;
+    --shadow-sm:none !important;
+    --shadow:none !important;
+    --shadow-md:none !important;
+    --shadow-lg:none !important;
+  }
+  body{
+    background:#ffffff !important;
+    color:#000 !important;
+    display:block !important;
+  }
+  body::before, body::after{display:none !important}
+
+  /* Esconde elementos não-imprimíveis */
+  .sidebar,
+  .cortex-canvas-wrap,
+  .cortex-input,
+  .cortex-quick,
+  .cortex-actions,
+  .cortex-icon-btn,
+  .ci-send,
+  .ci-menu-trigger,
+  .cortex-actions-menu,
+  .settings-gear,
+  .logout-btn,
+  .sidebar-collapse-btn,
+  .btn-primary, .btn-secondary, .btn-icon, .add-exercise,
+  .modal-backdrop,
+  .mini-clock,
+  .toast,
+  .file-toast,
+  .nav,
+  .pomodoro-widget,
+  .sidebar-footer,
+  .cortex-page,
+  .notes-view-toggle,
+  .tracker-pills,
+  .accent-picker,
+  .dc-toolbar,
+  .cal-toolbar,
+  .ww-toolbar,
+  .triggers-grid,
+  [onclick] button,
+  .page-header > button,
+  .add-contact{
+    display:none !important;
+  }
+
+  /* Main fills page */
+  .main{
+    margin:0 !important;
+    padding:12mm !important;
+    max-width:none !important;
+    width:100% !important;
+  }
+  .page{display:none !important}
+  .page.active{display:block !important; animation:none !important}
+
+  /* Tipografia print-friendly */
+  h1,h2,h3,h4{color:#000 !important;break-after:avoid;page-break-after:avoid}
+  .page-title{
+    color:#000 !important;
+    background:none !important;
+    -webkit-text-fill-color:#000 !important;
+    border-bottom:2px solid #000;
+    padding-bottom:6px;margin-bottom:14px;
+  }
+  .page-subtitle{color:#444 !important;font-size:11pt}
+
+  /* Cards / superfícies — borda preta fina */
+  .card, .summary-card, .info-card, .stat-card,
+  .workout-card, .habit-pro-card, .project-card,
+  .diet-plan-card, .hbp-dash-card, .bills-progress-card{
+    background:#fff !important;
+    border:1px solid #999 !important;
+    box-shadow:none !important;
+    color:#000 !important;
+    break-inside:avoid;page-break-inside:avoid;
+  }
+
+  /* Tabelas */
+  table{width:100%;border-collapse:collapse}
+  th, td{
+    border:1px solid #888;padding:6px 8px;
+    color:#000 !important;font-size:10pt;
+  }
+  th{background:#eee !important;font-weight:700}
+
+  /* Calendar — grid imprimível */
+  .month-grid, .week-grid{
+    background:#fff !important;
+    border:1px solid #888;
+  }
+  .month-day, .week-cell{
+    background:#fff !important;
+    border:1px solid #ccc !important;
+    color:#000 !important;
+  }
+  .month-day.today, .week-cell.today{
+    background:#f5f5f5 !important;
+    border:2px solid #000 !important;
+  }
+  .event{
+    background:#eee !important;
+    color:#000 !important;
+    border-left:3px solid #000;
+  }
+
+  /* Charts → renderizam como canvas, OK; mas remove glow */
+  canvas{
+    background:#fff !important;
+    filter:none !important;
+  }
+
+  /* Charts ocultos quando não fazem sentido em print */
+  .hbp-chart-wrap, .chart-wrap{
+    page-break-inside:avoid;
+  }
+
+  /* Heatmap converte em escala de cinza */
+  .hbp-heat-cell.intensity-0{background:#fff !important;border:1px solid #ddd !important}
+  .hbp-heat-cell.intensity-1{background:#e0e0e0 !important;border:1px solid #aaa !important}
+  .hbp-heat-cell.intensity-2{background:#a8a8a8 !important;border:1px solid #888 !important}
+  .hbp-heat-cell.intensity-3{background:#666 !important;border:1px solid #444 !important}
+  .hbp-heat-cell.intensity-4{background:#000 !important;border:1px solid #000 !important}
+
+  /* Habits cards */
+  .habit-pro-stats{break-inside:avoid}
+
+  /* Page setup A4 */
+  @page{
+    size:A4;
+    margin:10mm;
+  }
+
+  /* Quebras */
+  .stat-row, .summary-grid{page-break-inside:avoid;break-inside:avoid}
+
+  /* Links em print mostram URL */
+  a[href]:not([href^="#"]):not([href^="javascript:"])::after{
+    content:" (" attr(href) ")";
+    font-size:9pt;color:#666;
+  }
+
+  /* Print badges/pills */
+  .badge-pill, .tag, .summary-meta, .recent-icon{
+    background:#fff !important;
+    border:1px solid #888 !important;
+    color:#000 !important;
+  }
+}
