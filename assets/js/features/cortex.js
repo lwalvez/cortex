@@ -1475,7 +1475,14 @@ function _cortexSpeechSetArmed(armed){
 
 function startCortexSpeech(){
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!SR) return false;
+  if(!SR){
+    console.warn('[CORTEX] SpeechRecognition indisponível neste navegador (use Chrome/Edge/Safari).');
+    return false;
+  }
+  if(location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1'){
+    console.warn('[CORTEX] SpeechRecognition exige HTTPS. Origem atual:', location.origin);
+    return false;
+  }
   try{
     const rec = new SR();
     rec.continuous = true;
@@ -1544,7 +1551,23 @@ function startCortexSpeech(){
     };
     rec.onerror = (e) => {
       if(e.error === 'no-speech' || e.error === 'aborted') return; // silêncio/normal
-      console.warn('CORTEX speech error:', e.error);
+      console.warn('[CORTEX] speech error:', e.error, e.message || '');
+      // Marca input com erro visual + reabilita restart loop
+      const bar = document.getElementById('cortexInputBar');
+      if(bar){
+        bar.classList.add('speech-error');
+        setTimeout(()=>bar?.classList.remove('speech-error'), 2400);
+      }
+      const inp = document.getElementById('cortexInput');
+      if(inp){
+        const msgMap = {
+          'not-allowed':  'Permissão de microfone negada — clique no cadeado da URL e permita',
+          'service-not-allowed': 'Serviço de voz bloqueado pelo navegador',
+          'audio-capture': 'Sem microfone disponível',
+          'network':       'Erro de rede no reconhecimento de voz',
+        };
+        inp.placeholder = msgMap[e.error] || `Erro de ditado: ${e.error}`;
+      }
     };
     rec.onend = () => {
       // Browser para sozinho às vezes — reinicia se ainda ativo
@@ -1660,6 +1683,9 @@ function cortexMenuClearChat(){
 
 async function toggleCortexMic(){
   if(!cortexParticles){
+    console.warn('[CORTEX] Esfera não inicializada — ligue ela antes (✦ → Esfera).');
+    const inp = document.getElementById('cortexInput');
+    if(inp) inp.placeholder = 'Ligue a esfera primeiro (✦ → Esfera)';
     return;
   }
   const btn = document.getElementById('cortexMicBtn');
@@ -1679,7 +1705,9 @@ async function toggleCortexMic(){
         : 'Esfera reativa ao mic (ditado não suportado neste navegador)';
     }
   }catch(err){
-    console.warn('CORTEX mic permission denied:', err);
+    console.warn('[CORTEX] mic permission denied:', err);
+    const inp = document.getElementById('cortexInput');
+    if(inp) inp.placeholder = 'Permissão de microfone negada — verifique o cadeado da URL';
   }
 }
 
