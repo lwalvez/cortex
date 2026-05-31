@@ -157,6 +157,14 @@
     box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--neon) 28%,transparent);
   }
 
+  /* Estado de ERRO de ditado · borda vermelha pulsante curta */
+  .cortex-input-premium.speech-error{
+    border-color:var(--bad) !important;
+    box-shadow:0 0 0 4px rgba(255,122,154,0.18), 0 0 22px rgba(255,122,154,0.45) !important;
+    animation:cortexSpeechErrPulse 0.4s ease 6 !important;
+  }
+  @keyframes cortexSpeechErrPulse{50%{transform:translateX(-2px)}}
+
   /* Estado IDLE do ditado · esperando wake word "CORTEX" — leve */
   .cortex-input-premium.is-listening{
     border-color:color-mix(in srgb,var(--neon) 38%,rgba(255,255,255,0.08));
